@@ -3,6 +3,7 @@ use std::net::TcpStream;
 use std::sync::mpsc::{self, TryRecvError};
 use std::thread;
 use std::time::Duration;
+use std::str;
 
 const LOCAL: &str = "127.0.0.1:10000";
 const MSG_SIZE: usize = 32;
@@ -18,7 +19,12 @@ fn main() {
         match client.read_exact(&mut buff) {
             Ok(_) => {
                 let msg = buff.into_iter().take_while(|&x| x != 0).collect::<Vec<_>>();
-                println!("message recv {:?}", msg);
+
+                // println!("message recv {:?}", msg); Print the buffer
+
+                let res = String::from_utf8(msg).expect("Found invalid UTF-8");
+                println!("messag recv {}", res);
+                
             },
             Err(ref err) if err.kind() == ErrorKind::WouldBlock => (),
             Err(_) => {
@@ -37,7 +43,6 @@ fn main() {
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => break
         }
-
         thread::sleep(Duration::from_millis(100));
     });
 
@@ -49,5 +54,4 @@ fn main() {
         if msg == ":quit" || tx.send(msg).is_err() {break}
     }
     println!("bye bye!");
-
 }
