@@ -1,3 +1,7 @@
+extern crate iui;
+use iui::prelude::*;
+use iui::controls::*;
+
 use std::io::{self, ErrorKind, Read, Write};
 use std::net::TcpStream;
 use std::sync::mpsc::{self, TryRecvError};
@@ -9,6 +13,57 @@ const LOCAL: &str = "127.0.0.1:10000";
 const MSG_SIZE: usize = 32;
 
 fn main() {
+    gui();
+    two();
+}
+
+fn gui(){
+    let ui = UI::init().expect("cant create UI");
+
+    let mut win = Window::new(&ui, "Rustchat", 400, 400, WindowType::NoMenubar);
+
+    let mut vbox = VerticalBox::new(&ui);
+    let mut footer = HorizontalBox::new(&ui);
+
+    let mut text_vbox = VerticalBox::new(&ui);
+    text_vbox.set_padded(&ui, true);
+
+    let text_msg = Label::new(&ui, "Message");
+    let text_msgs = Label::new(&ui, "Message2");
+
+    let message = Entry::new(&ui);
+
+    let mut btn_send = Button::new(&ui, "Send");
+    btn_send.on_clicked(&ui, {
+        let text = message.value(&ui);
+        println!("Send {}", text);
+        move |_| {
+            println!("Send {}", text);
+        }
+    });
+    
+    let btn_emoji = Button::new(&ui, "Emoji");
+
+    text_vbox.append(&ui, text_msg, LayoutStrategy::Compact);
+    text_vbox.append(&ui, text_msgs, LayoutStrategy::Compact);
+
+    footer.append(&ui, btn_emoji, LayoutStrategy::Compact);
+    footer.append(&ui, message, LayoutStrategy::Stretchy);
+    footer.append(&ui, btn_send, LayoutStrategy::Compact);
+
+    vbox.append(&ui, text_vbox, LayoutStrategy::Stretchy);
+    vbox.append(&ui, footer, LayoutStrategy::Compact);
+
+    win.set_child(&ui, vbox);
+    win.show(&ui);
+    ui.main();
+}
+
+// fn send(){
+//     println!("Send")
+// }
+
+fn two (){
     let mut client = TcpStream::connect(LOCAL).expect("Stream failed to connect");
     client.set_nonblocking(true).expect("failed to initiate non-blocking");
 

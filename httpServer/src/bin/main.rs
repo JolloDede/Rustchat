@@ -1,5 +1,6 @@
 use std::fs;
 use std::fs::File;
+use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::Write;
 use std::net::TcpListener;
@@ -67,13 +68,17 @@ fn store_message_textfile(message: [u8; 512]){
     let user = &important_text[5..and_pos.unwrap()];
     let message_text = &important_text[and_pos.unwrap()+9..512-pos_body.unwrap()];
 
-    let mut file = File::create("messages.txt").expect("cant create File");
-    // let mut file = if std::path::Path::new("messages.txt").exists() {
-    //     // File::with_options().write(true).open("messages.txt").expect("Cant open File")
-    // }else{
-    //     File::create("messages.txt").expect("cant create File")
-    // };
+    let file = OpenOptions::new()
+            .read(true)
+            .write(true)
+            .create(true)
+            .open("messages.txt");
+
     let x = format!("{};{}", user, message_text);
     println!("{}", x);
-    file.write_all(x.as_bytes()).expect("cant write to file");
+
+    match file {
+        Ok(mut v) => v.write_all(x.as_bytes()).expect("cant write to file"),
+        Err(e) => println!("error parsing header: {:?}", e),
+    }
 }
